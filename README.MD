@@ -62,3 +62,71 @@ var body = Encoding.UTF8.GetBytes(message);
 await channel.BasicPublishAsync(exchange: "logs", routingKey: string.Empty, body: body);
 ```
 
+# Temporary queues
+
+As you may remember previously we were using queues that had specific names (remember hello and task_queue?). Being able to name a queue was crucial for us -- we needed to point the workers to the same queue. Giving a queue a name is important when you want to share the queue between producers and consumers.
+
+But that's not the case for our logger. We want to hear about all log messages, not just a subset of them. We're also interested only in currently flowing messages not in the old ones. To solve that we need two things.
+
+Firstly, whenever we connect to Rabbit we need a fresh, empty queue. To do this we could create a queue with a random name, or, even better - let the server choose a random queue name for us.
+
+Secondly, once we disconnect the consumer the queue should be automatically deleted.
+
+In the .NET client, when we supply no parameters to QueueDeclareAsync() we create a non-durable, exclusive, autodelete queue with a generated name:
+
+**__dotnet/ReceiveLogs/ReceiveLogs.cs__**
+```CSharp
+QueueDeclareOk queueDeclareResult = await channel.QueueDeclareAsync();
+string queueName = queueDeclareResult.QueueName;
+```
+
+You can learn more about the exclusive flag and other queue properties in the guide on queues.
+
+At that point queueName contains a random queue name. For example it may look like **amq.gen-JzTY20BRgKO-HjmUJj0wLg**.
+
+#Bindings
+![](images/flow2.jpg)
+We've already created a fanout exchange and a queue. Now we need to tell the exchange to send messages to our queue. That relationship between exchange and a queue is called a binding.
+
+**__dotnet/ReceiveLogs/ReceiveLogs.cs__**
+```CSharp
+await channel.QueueBindAsync(queue: queueName, exchange: "logs", routingKey: string.Empty);
+```
+
+View on GitHub
+From now on the **logs** exchange will append messages to our queue.
+
+>##Listing bindings
+>You can list existing bindings using, you guessed it,
+>
+>```linux
+>rabbitmqctl list_bindings
+>```
+#Putting it al together
+![](images/flow3.jpg)
+The producer program, which emits log messages, doesn't look much different from the previous tutorial. The most important change is that we now want to publish messages to our **logs** exchange instead of the nameless one. We need to supply a routingKey when sending, but its value is ignored for **fanout** exchanges. Here goes the code for **EmitLog.cs** file:
+
+**__dotnet/EmitLog/EmitLog.cs__**
+```CShap
+using RabbitMQ.Client;
+using System.Text;
+
+var factory = new ConnectionFactory { HostName = "localhost" };
+using var connection = await factory.CreateConnectionAsync();
+using var channel = await connection.CreateChannelAsync();
+
+await channel.ExchangeDeclareAsync(exchange: "logs", type: ExchangeType.Fanout);
+
+var message = GetMessage(args);
+var body = Encoding.UTF8.GetBytes(message);
+await channel.BasicPublishAsync(exchange: "logs", routingKey: string.Empty, body: body);
+Console.WriteLine($" [x] Sent {message}");
+
+Console.WriteLine(" Press [enter] to exit.");
+Console.ReadLine();
+
+static string GetMessage(string[] args)
+{
+    return ((args.Length > 0) ? string.Join(" ", args) : "info: Hello World!");
+}
+```
