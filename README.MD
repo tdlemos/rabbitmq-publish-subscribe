@@ -106,6 +106,7 @@ From now on the **logs** exchange will append messages to our queue.
 >```
 # Putting it al together
 ![](images/flow3.jpg)
+
 The producer program, which emits log messages, doesn't look much different from the previous tutorial. The most important change is that we now want to publish messages to our **logs** exchange instead of the nameless one. We need to supply a routingKey when sending, but its value is ignored for **fanout** exchanges. Here goes the code for **EmitLog.cs** file:
 
 **__dotnet/EmitLog/EmitLog.cs__**
