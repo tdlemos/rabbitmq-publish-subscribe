@@ -107,7 +107,7 @@ From now on the **logs** exchange will append messages to our queue.
 # Putting it al together
 ![](images/flow3.jpg)
 
-The producer program, which emits log messages, doesn't look much different from the previous tutorial. The most important change is that we now want to publish messages to our **logs** exchange instead of the nameless one. We need to supply a routingKey when sending, but its value is ignored for **fanout** exchanges. Here goes the code for **EmitLog.cs** file:
+The producer program, which emits log messages, doesn't look much different from the previous tutorial. The most important change is that we now want to publish messages to our **logs** exchange instead of the nameless one. We need to supply a **routingKey** when sending, but its value is ignored for **fanout** exchanges. Here goes the code for **EmitLog.cs** file:
 
 **__dotnet/EmitLog/EmitLog.cs__**
 ```CSharp
@@ -133,3 +133,81 @@ static string GetMessage(string[] args)
     return ((args.Length > 0) ? string.Join(" ", args) : "info: Hello World!");
 }
 ```
+
+As you see, after establishing the connection we declared the exchange. This step is necessary as publishing to a non-existing exchange is forbidden.
+
+The messages will be lost if no queue is bound to the exchange yet, but that's okay for us; if no consumer is listening yet we can safely discard the message.
+
+The code for **ReceiveLogs.cs**:
+
+```CSharp
+dotnet/ReceiveLogs/ReceiveLogs.cs
+using RabbitMQ.Client;
+using RabbitMQ.Client.Events;
+using System.Text;
+
+var factory = new ConnectionFactory { HostName = "localhost" };
+using var connection = await factory.CreateConnectionAsync();
+using var channel = await connection.CreateChannelAsync();
+
+await channel.ExchangeDeclareAsync(exchange: "logs",
+    type: ExchangeType.Fanout);
+
+// declare a server-named queue
+QueueDeclareOk queueDeclareResult = await channel.QueueDeclareAsync();
+string queueName = queueDeclareResult.QueueName;
+await channel.QueueBindAsync(queue: queueName, exchange: "logs", routingKey: string.Empty);
+
+Console.WriteLine(" [*] Waiting for logs.");
+
+var consumer = new AsyncEventingBasicConsumer(channel);
+consumer.ReceivedAsync += (model, ea) =>
+{
+    byte[] body = ea.Body.ToArray();
+    var message = Encoding.UTF8.GetString(body);
+    Console.WriteLine($" [x] {message}");
+    return Task.CompletedTask;
+};
+
+await channel.BasicConsumeAsync(queueName, autoAck: true, consumer: consumer);
+
+Console.WriteLine(" Press [enter] to exit.");
+Console.ReadLine();
+```
+
+Follow the setup instructions from **tutorial one** to generate the EmitLogs and ReceiveLogs projects.
+
+If you want to save logs to a file, just open a console and type:
+
+```shell
+cd ReceiveLogs
+dotnet run > logs_from_rabbit.log
+```
+
+If you wish to see the logs on your screen, spawn a new terminal and run:
+
+```shell
+cd ReceiveLogs
+dotnet run
+```
+
+And of course, to emit logs type:
+
+```shell
+cd EmitLog
+dotnet run
+```
+
+Using **rabbitmqctl list_bindings** you can verify that the code actually creates bindings and queues as we want. With two ReceiveLogs.cs programs running you should see something like:
+
+```shell
+sudo rabbitmqctl list_bindings
+# => Listing bindings ...
+# => logs    exchange        amq.gen-JzTY20BRgKO-HjmUJj0wLg  queue           []
+# => logs    exchange        amq.gen-vso0PVvyiRIL2WoV3i48Yg  queue           []
+# => ...done.
+```
+
+The interpretation of the result is straightforward: data from exchange logs goes to two queues with server-assigned names. And that's exactly what we intended.
+
+To find out how to listen for a subset of messages, let's move on to tutorial 4
