@@ -17,3 +17,4 @@ C:\Dev\github\rabbitmq-publish-subscribe\publish\obj\Debug\net8.0\refint\publish
 C:\Dev\github\rabbitmq-publish-subscribe\publish\obj\Debug\net8.0\publish.pdb
 C:\Dev\github\rabbitmq-publish-subscribe\publish\obj\Debug\net8.0\publish.genruntimeconfig.cache
 C:\Dev\github\rabbitmq-publish-subscribe\publish\obj\Debug\net8.0\ref\publish.dll
+C:\Dev\github\rabbitmq-publish-subscribe\publish\obj\Debug\net8.0\publish.sourcelink.json
