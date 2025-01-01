@@ -34,7 +34,7 @@ The fanout exchange is very simple. As you can probably guess from the name, it 
 > ### Listing exchanges
 > To list the exchanges on the server you can run the ever useful rabbitmqctl:
 > 
-> ````cmd
+> ````linux
 > sudo rabbitmqctl list_exchanges
 > ````
 >In this list there will be some amq.* exchanges and the default (unnamed) exchange. These are created by default, but it is unlikely ?you'll need to use them at the moment.
