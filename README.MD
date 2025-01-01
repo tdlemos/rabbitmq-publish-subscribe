@@ -1,17 +1,17 @@
 # .NET 8 RabbitMQ - Publish & Subscribe
 
-In this exemple we'll deliver a message to multiple consumers. This pattern is known as "publish/subscribe".
+In this exemple I'm going to create a multiple consumers in the pattern known as "publish/subscribe" in RabbitMQ.
 
-To illustrate the pattern, we're going to build a simple logging system. It will consist of two programs -- the first will emit log messages and the second will receive and print them.
+To illustrate the pattern, I'm going to build a simple logging system. It will consist of two programs -- the first will emit log messages and the second will receive and print them.
 
-In our logging system every running copy of the receiver program will get the messages. That way we'll be able to run one receiver and direct the logs to disk; and at the same time we'll be able to run another receiver and see the logs on the screen.
+In this logging system every running copy of the receiver program will get the messages. That way we'll be able to run one receiver and direct the logs to disk; and at the same time we'll be able to run another receiver and see the logs on the screen.
 
 Essentially, published log messages are going to be broadcast to all the receivers.
 
 ## Exchanges
-Now it's time to introduce the full messaging model in Rabbit.
+Now it's time to know the full messaging model in RabbitMQ.
 
-Let's quickly go over what we covered in Queue pattern:
+Let's quickly go over about the Queue pattern:
 
 - A producer is a user application that sends messages.
 - A queue is a buffer that stores messages.
@@ -35,7 +35,7 @@ The fanout exchange is very simple. As you can probably guess from the name, it 
 > ### Listing exchanges
 > To list the exchanges on the server you can run the ever useful rabbitmqctl:
 > 
-> ```linux
+> ```console
 > sudo rabbitmqctl list_exchanges
 > ```
 >In this list there will be some amq.* exchanges and the default (unnamed) exchange. These are created by default, but it is unlikely ?you'll need to use them at the moment.
