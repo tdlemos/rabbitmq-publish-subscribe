@@ -20,6 +20,7 @@ Let's quickly go over what we covered in Queue pattern:
 The core idea in the messaging model in RabbitMQ is that the producer never sends any messages directly to a queue. Actually, quite often the producer doesn't even know if a message will be delivered to any queue at all.
 
 Instead, the producer can only send messages to an exchange. An exchange is a very simple thing. On one side it receives messages from producers and the other side it pushes them to queues. The exchange must know exactly what to do with a message it receives. Should it be appended to a particular queue? Should it be appended to many queues? Or should it get discarded. The rules for that are defined by the exchange type.
+
 ![](images/flow1.jpg)
 
 There are a few exchange types available: **__direct__**, **__topic__**, **__headers__** and **__fanout__**. We'll focus on the last one -- the fanout. Let's create an exchange of this type, and call it logs:
@@ -84,8 +85,10 @@ You can learn more about the exclusive flag and other queue properties in the gu
 
 At that point queueName contains a random queue name. For example it may look like **amq.gen-JzTY20BRgKO-HjmUJj0wLg**.
 
-#Bindings
+# Bindings
+
 ![](images/flow2.jpg)
+
 We've already created a fanout exchange and a queue. Now we need to tell the exchange to send messages to our queue. That relationship between exchange and a queue is called a binding.
 
 **__dotnet/ReceiveLogs/ReceiveLogs.cs__**
@@ -93,16 +96,15 @@ We've already created a fanout exchange and a queue. Now we need to tell the exc
 await channel.QueueBindAsync(queue: queueName, exchange: "logs", routingKey: string.Empty);
 ```
 
-View on GitHub
 From now on the **logs** exchange will append messages to our queue.
 
->##Listing bindings
+>## Listing bindings
 >You can list existing bindings using, you guessed it,
 >
 >```linux
 >rabbitmqctl list_bindings
 >```
-#Putting it al together
+# Putting it al together
 ![](images/flow3.jpg)
 The producer program, which emits log messages, doesn't look much different from the previous tutorial. The most important change is that we now want to publish messages to our **logs** exchange instead of the nameless one. We need to supply a routingKey when sending, but its value is ignored for **fanout** exchanges. Here goes the code for **EmitLog.cs** file:
 
