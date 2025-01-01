@@ -48,13 +48,13 @@ The fanout exchange is very simple. As you can probably guess from the name, it 
 > ```CSharp
 >var body = Encoding.UTF8.GetBytes(message);
 >
->
 >await channel.BasicPublishAsync(exchange: string.Empty, routingKey: "hello", body: body);
 >```
 >
 >The first parameter is the name of the exchange. The empty string denotes the default or nameless exchange: messages are routed to the queue with the name specified by routingKey, if it exists.
 
 Now, we can publish to our named exchange instead:
+
 **__dotnet/EmitLog/EmitLog.cs__**
 ```CSharp
 var message = GetMessage(args);
