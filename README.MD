@@ -34,9 +34,31 @@ The fanout exchange is very simple. As you can probably guess from the name, it 
 > ### Listing exchanges
 > To list the exchanges on the server you can run the ever useful rabbitmqctl:
 > 
-> ````linux
+> ```linux
 > sudo rabbitmqctl list_exchanges
-> ````
+> ```
 >In this list there will be some amq.* exchanges and the default (unnamed) exchange. These are created by default, but it is unlikely ?you'll need to use them at the moment.
 
 > ### The dafult exchange
+>In previous parts of the tutorial we knew nothing about exchanges, but still were able to send messages to queues. That was possible because we were using a default exchange, which we identify by the empty string ("").
+>
+>Recall how we published a message before:
+>
+>dotnet/Send/Send.cs
+> ```CSharp
+>var body = Encoding.UTF8.GetBytes(message);
+>
+>
+>await channel.BasicPublishAsync(exchange: string.Empty, routingKey: "hello", body: body);
+>```
+>
+>The first parameter is the name of the exchange. The empty string denotes the default or nameless exchange: messages are routed to the queue with the name specified by routingKey, if it exists.
+
+Now, we can publish to our named exchange instead:
+**__dotnet/EmitLog/EmitLog.cs__**
+```CSharp
+var message = GetMessage(args);
+var body = Encoding.UTF8.GetBytes(message);
+await channel.BasicPublishAsync(exchange: "logs", routingKey: string.Empty, body: body);
+```
+
