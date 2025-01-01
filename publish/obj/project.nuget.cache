@@ -1,0 +1,19 @@
+{
+  "version": 2,
+  "dgSpecHash": "zImVMNzs4xaujFNY6mRMvjrTC02jOQoQqgY1Pjzg4tulq6IjuMtHnxVKxs1l3A4VEalmwoX7O81SBdGEzAfiUg==",
+  "success": true,
+  "projectFilePath": "C:\\Dev\\github\\rabbitmq-publish-subscribe\\publish\\publish.csproj",
+  "expectedPackageFiles": [
+    "C:\\Users\\Tercio Duarte\\.nuget\\packages\\rabbitmq.client\\7.0.0\\rabbitmq.client.7.0.0.nupkg.sha512",
+    "C:\\Users\\Tercio Duarte\\.nuget\\packages\\system.io.pipelines\\8.0.0\\system.io.pipelines.8.0.0.nupkg.sha512",
+    "C:\\Users\\Tercio Duarte\\.nuget\\packages\\system.threading.ratelimiting\\8.0.0\\system.threading.ratelimiting.8.0.0.nupkg.sha512"
+  ],
+  "logs": [
+    {
+      "code": "NU1803",
+      "level": "Warning",
+      "warningLevel": 1,
+      "message": "You are running the 'restore' operation with an 'HTTP' source, 'http://nexus.devops.valorpro.com.br/repository/valor'. Non-HTTPS access will be removed in a future version. Consider migrating to an 'HTTPS' source."
+    }
+  ]
+}
