@@ -22,9 +22,21 @@ The core idea in the messaging model in RabbitMQ is that the producer never send
 Instead, the producer can only send messages to an exchange. An exchange is a very simple thing. On one side it receives messages from producers and the other side it pushes them to queues. The exchange must know exactly what to do with a message it receives. Should it be appended to a particular queue? Should it be appended to many queues? Or should it get discarded. The rules for that are defined by the exchange type.
 ![](images/flow1.jpg)
 
-There are a few exchange types available: direct, topic, headers and fanout. We'll focus on the last one -- the fanout. Let's create an exchange of this type, and call it logs:
+There are a few exchange types available: **__direct__**, **__topic__**, **__headers__** and **__fanout__**. We'll focus on the last one -- the fanout. Let's create an exchange of this type, and call it logs:
 
-dotnet/EmitLog/EmitLog.cs
+
 ```CSharp
 await channel.ExchangeDeclareAsync(exchange: "logs", type: ExchangeType.Fanout);
 ```
+
+The fanout exchange is very simple. As you can probably guess from the name, it just broadcasts all the messages it receives to all the queues it knows. And that's exactly what we need for our logger.
+
+> ### Listing exchanges
+> To list the exchanges on the server you can run the ever useful rabbitmqctl:
+> 
+> ````cmd
+> sudo rabbitmqctl list_exchanges
+> ````
+>In this list there will be some amq.* exchanges and the default (unnamed) exchange. These are created by default, but it is unlikely ?you'll need to use them at the moment.
+
+> ### The dafult exchange
