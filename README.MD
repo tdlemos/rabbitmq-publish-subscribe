@@ -56,7 +56,7 @@ The fanout exchange is very simple. As you can probably guess from the name, it 
 
 Now, we can publish to our named exchange instead:
 
-**__dotnet/EmitLog/EmitLog.cs__**
+**__publish/Program.cs__**
 ```CSharp
 var message = GetMessage(args);
 var body = Encoding.UTF8.GetBytes(message);
@@ -65,17 +65,17 @@ await channel.BasicPublishAsync(exchange: "logs", routingKey: string.Empty, body
 
 # Temporary queues
 
-As you may remember previously we were using queues that had specific names (remember hello and task_queue?). Being able to name a queue was crucial for us -- we needed to point the workers to the same queue. Giving a queue a name is important when you want to share the queue between producers and consumers.
+Being able to name a queue was crucial for us -- we needed to point the workers to the same queue. Giving a queue a name is important when you want to share the queue between producers and consumers.
 
 But that's not the case for our logger. We want to hear about all log messages, not just a subset of them. We're also interested only in currently flowing messages not in the old ones. To solve that we need two things.
 
-Firstly, whenever we connect to Rabbit we need a fresh, empty queue. To do this we could create a queue with a random name, or, even better - let the server choose a random queue name for us.
+Firstly, whenever we connect to RabbitMQ we need a fresh, empty queue. To do this we could create a queue with a random name, or, even better - let the server choose a random queue name for us.
 
 Secondly, once we disconnect the consumer the queue should be automatically deleted.
 
 In the .NET client, when we supply no parameters to QueueDeclareAsync() we create a non-durable, exclusive, autodelete queue with a generated name:
 
-**__dotnet/ReceiveLogs/ReceiveLogs.cs__**
+**__subscribe/Program.cs__**
 ```CSharp
 QueueDeclareOk queueDeclareResult = await channel.QueueDeclareAsync();
 string queueName = queueDeclareResult.QueueName;
@@ -91,7 +91,7 @@ At that point queueName contains a random queue name. For example it may look li
 
 We've already created a fanout exchange and a queue. Now we need to tell the exchange to send messages to our queue. That relationship between exchange and a queue is called a binding.
 
-**__dotnet/ReceiveLogs/ReceiveLogs.cs__**
+**__subscribe/Program.cs__**
 ```CSharp
 await channel.QueueBindAsync(queue: queueName, exchange: "logs", routingKey: string.Empty);
 ```
@@ -107,9 +107,9 @@ From now on the **logs** exchange will append messages to our queue.
 # Putting it al together
 ![](images/flow3.jpg)
 
-The producer program, which emits log messages, doesn't look much different from the previous tutorial. The most important change is that we now want to publish messages to our **logs** exchange instead of the nameless one. We need to supply a **routingKey** when sending, but its value is ignored for **fanout** exchanges. Here goes the code for **EmitLog.cs** file:
+The producer program, which emits log messages, doesn't look much different from the Queue pattern. The most important change is that we now want to publish messages to our **logs** exchange instead of the nameless one. We need to supply a **routingKey** when sending, but its value is ignored for **fanout** exchanges. Here goes the code for **publish/Program.cs** file:
 
-**__dotnet/EmitLog/EmitLog.cs__**
+**__ublish/Program.cs__**
 ```CSharp
 using RabbitMQ.Client;
 using System.Text;
@@ -138,10 +138,12 @@ As you see, after establishing the connection we declared the exchange. This ste
 
 The messages will be lost if no queue is bound to the exchange yet, but that's okay for us; if no consumer is listening yet we can safely discard the message.
 
-The code for **ReceiveLogs.cs**:
+The code for **subscribe/Program.cs**:
+
+**__subscribe/Program.cs__**
 
 ```CSharp
-dotnet/ReceiveLogs/ReceiveLogs.cs
+
 using RabbitMQ.Client;
 using RabbitMQ.Client.Events;
 using System.Text;
@@ -175,26 +177,24 @@ Console.WriteLine(" Press [enter] to exit.");
 Console.ReadLine();
 ```
 
-Follow the setup instructions from **tutorial one** to generate the EmitLogs and ReceiveLogs projects.
-
 If you want to save logs to a file, just open a console and type:
 
 ```shell
-cd ReceiveLogs
+cd subscribe
 dotnet run > logs_from_rabbit.log
 ```
 
 If you wish to see the logs on your screen, spawn a new terminal and run:
 
 ```shell
-cd ReceiveLogs
+cd subscribe
 dotnet run
 ```
 
 And of course, to emit logs type:
 
 ```shell
-cd EmitLog
+cd publish
 dotnet run
 ```
 
@@ -209,5 +209,3 @@ sudo rabbitmqctl list_bindings
 ```
 
 The interpretation of the result is straightforward: data from exchange logs goes to two queues with server-assigned names. And that's exactly what we intended.
-
-To find out how to listen for a subset of messages, let's move on to tutorial 4
